@@ -1,0 +1,153 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE  mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="flow3.model.dao.TTaskInstMapper">
+	<resultMap id="BaseResultMap" type="flow3.model.entity.TTaskInst">
+            <result column="id" property="id" />
+	        <result column="flowId" property="flowId" />
+	        <result column="taskId" property="taskId" />
+	        <result column="ret" property="ret" />
+	        <result column="created_at" property="createdAt" />
+	        <result column="updated_at" property="updatedAt" />
+		</resultMap>  
+    
+    <!-- 表字段 -->
+    <sql id="baseColumns">
+         t.id
+        , t.flowId
+        , t.taskId
+        , t.ret
+        , t.created_at
+        , t.updated_at
+        </sql> 
+    
+    <!-- 查询全部 -->
+    <select id="listAll" resultMap="BaseResultMap">
+		SELECT         
+        	<include refid="baseColumns" />
+		FROM t_task_inst t
+	</select>
+ 
+ 	<!-- 根据主键获取单条记录 -->
+    <select id="getById" resultMap="BaseResultMap" parameterType="Integer">
+		SELECT         
+        	<include refid="baseColumns" />
+		FROM t_task_inst t
+		WHERE id = #{id}
+	</select>
+
+	<!-- 插入全部字段 -->
+    <insert id="insert" parameterType="flow3.model.entity.TTaskInst"
+		keyProperty="id" keyColumn="id" useGeneratedKeys="true"
+    >
+        <selectKey resultType="java.lang.Integer" order="AFTER" keyProperty="id">
+            SELECT LAST_INSERT_ID() AS id
+        </selectKey>
+	INSERT INTO t_task_inst
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+        	        	    	flowId,
+    	        	    	taskId,
+    	        	    	ret,
+    	        	    	created_at,
+    	        	    	updated_at,
+    	        </trim>
+    <trim prefix="VALUES (" suffix=")" suffixOverrides=",">            
+        	        	        #{flowId},
+    	        	        #{taskId},
+    	        	        #{ret},                   
+    	        	        #{createdAt},                   
+    	        	        #{updatedAt},                   
+    	        </trim>
+	</insert>
+    
+    <!-- 插入不为NULL的字段 -->
+    <insert id="insertIgnoreNull" parameterType="flow3.model.entity.TTaskInst"
+        keyProperty="id" keyColumn="id" useGeneratedKeys="true"
+        >
+        <selectKey resultType="java.lang.Integer" order="AFTER" keyProperty="id">
+            SELECT LAST_INSERT_ID() AS id
+        </selectKey>
+        INSERT INTO t_task_inst    
+        <trim prefix="(" suffix=")" suffixOverrides=",">	 
+
+                                                                            <if test="flowId != null">
+                   flowId,
+                    </if>
+                                                                <if test="taskId != null">
+                   taskId,
+                    </if>
+                                                                <if test="ret != null">
+                   ret,
+                    </if>
+                                                                <if test="createdAt != null">
+                   created_at,
+                    </if>
+                                                                <if test="updatedAt != null">
+                   updated_at,
+                    </if>
+                                    </trim>
+        <trim prefix="VALUES (" suffix=")" suffixOverrides=",">            
+                                                                            <if test="flowId != null" >
+                    #{flowId},                    
+                    </if>
+                                                                <if test="taskId != null" >
+                    #{taskId},                    
+                    </if>
+                                                                <if test="ret != null" >
+                    #{ret},                    
+                    </if>
+                                                                <if test="createdAt != null" >
+                    #{createdAt},                    
+                    </if>
+                                                                <if test="updatedAt != null" >
+                    #{updatedAt},                    
+                    </if>
+                                    </trim>
+    </insert>
+
+	<!-- 更新,更新全部字段 -->
+    <update id="update" parameterType="flow3.model.entity.TTaskInst">
+    UPDATE t_task_inst
+     <set>		
+                                     flowId=#{flowId},        
+                                taskId=#{taskId},        
+                                ret=#{ret},        
+                                created_at=#{createdAt},        
+                                updated_at=#{updatedAt},        
+                   </set>	
+    WHERE id = #{id}
+    </update>  
+    
+    
+    <!-- 更新不为NULL的字段 -->
+    <update id="updateIgnoreNull" parameterType="flow3.model.entity.TTaskInst">
+    UPDATE t_task_inst
+    <set>
+    	                                                <if test="flowId != null" >
+                flowId=#{flowId},                 
+                </if>
+                                                <if test="taskId != null" >
+                taskId=#{taskId},                 
+                </if>
+                                                <if test="ret != null" >
+                ret=#{ret},                 
+                </if>
+                                                <if test="createdAt != null" >
+                created_at=#{createdAt},                 
+                </if>
+                                                <if test="updatedAt != null" >
+                updated_at=#{updatedAt},                 
+                </if>
+                        </set>
+    WHERE id = #{id}
+    </update>
+
+		
+	<!-- 根据主键删除记录 -->
+	<delete id="delete" parameterType="flow3.model.entity.TTaskInst">
+		UPDATE t_task_inst
+		SET is_deleted=1
+		WHERE id = #{id}
+	</delete>
+
+
+</mapper>
