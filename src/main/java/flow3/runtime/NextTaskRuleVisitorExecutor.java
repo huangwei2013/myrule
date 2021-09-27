@@ -3,15 +3,15 @@ package flow3.runtime;
 import flow3.dsl.gen.Calculator.CalculatorExprBaseVisitor;
 import flow3.dsl.gen.Calculator.CalculatorExprParser;
 
-
 import java.util.HashMap;
 import java.util.Map;
 
-public class RuleVisitorExecutor extends CalculatorExprBaseVisitor<Float> {
+public class NextTaskRuleVisitorExecutor extends CalculatorExprBaseVisitor<Float> {
     // 声明一个 map，存放变量与值的键值对
     Map<String, Object> memory = new HashMap<String, Object>();
 
-    public void init(Map<String, Object> facts){
+    public void reInitFacts(Map<String, Object> facts){
+        memory.clear();
         for( Object varKey : facts.keySet()) {
             memory.put(varKey.toString(),  facts.get(varKey));
         }
@@ -28,32 +28,11 @@ public class RuleVisitorExecutor extends CalculatorExprBaseVisitor<Float> {
     public Float visitDefine(CalculatorExprParser.DefineContext ctx) {
         String var = ctx.VAR().getText();
         float value = visit(ctx.expr());
-        memory.put(var, value);
-        return value;
-    }
-
-    /**
-     * expr op=('*'|'/') expr
-     */
-    @Override
-    public Float visitMulDiv(CalculatorExprParser.MulDivContext ctx) {
-        float left = visit(ctx.expr(0));
-        float right = visit(ctx.expr(1));
-        if (ctx.op.getType() == CalculatorExprParser.MUL)
-            return left * right;
-        return left / right;
-    }
-
-    /**
-     * expr op=('+'|'-') expr
-     */
-    @Override
-    public Float visitAddSub(CalculatorExprParser.AddSubContext ctx) {
-        float left = visit(ctx.expr(0));
-        float right = visit(ctx.expr(1));
-        if (ctx.op.getType() == CalculatorExprParser.ADD)
-            return left + right;
-        return left - right;
+        if(memory.containsKey(var)){
+            return memory.get(var).equals(value)?(float)1:(float)0;
+        }else{
+            return (float)0;
+        }
     }
 
     /**

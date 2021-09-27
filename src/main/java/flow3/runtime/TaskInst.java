@@ -30,33 +30,43 @@ public class TaskInst {
         this.nodeInsts = task.getNodes();
     }
 
-    public Map<String, Object> run(RuleVisitorExecutor ruleExecutor, Map<String, Object> facts){
-        System.out.printf("Run Task : %d[%d-%d]", taskId, flowInstId, taskInstId);
+    public Map<String, Object> run(TaskRuleVisitorExecutor taskRuleVisitorExecutor){
+        System.out.printf("Run Task : %d[%d-%d]\n", taskId, flowInstId, taskInstId);
         while(!nodeInsts.isEmpty()){
             Node curNode = nodeInsts.poll();
             if(curNode instanceof Rule){
-                //do something， with DSL
-                System.out.printf("Execute Rule : %s\n", ((Rule) curNode).getContent());
-
                 Rule rule = (Rule)curNode;
-                ANTLRInputStream input = new ANTLRInputStream(rule.getContent());
-                CalculatorExprLexer lexer = new CalculatorExprLexer(input);
-                CommonTokenStream tokens = new CommonTokenStream(lexer);
-                CalculatorExprParser parser = new CalculatorExprParser(tokens);
-                ParseTree tree = parser.program();
-
-                Float ruleRet = ruleExecutor.visit(tree);//执行结果汇入 memory
-
-                System.out.printf("Execute Rule : %s, ret : %f\n", ((Rule) curNode).getContent(), ruleRet);
+                //do something， with DSL
+                System.out.printf("Execute Rule : %s\n", rule.getContent());
+                taskRuleVisitorExecutor = runRuleDSLVisitor(taskRuleVisitorExecutor, rule.getContent());
+                System.out.printf("Execute Rule : %s\n", ((Rule) curNode).getContent());
 
             }else if (curNode instanceof Action){
                 //do something
                 System.out.printf("Execute Action : %s\n", ((Rule) curNode).getContent());
 
             }else{
-                System.out.printf("Unknown node type ");
+                System.out.printf("Unknown node type \n");
             }
         }
-        return ruleExecutor.getMemory();
+        return taskRuleVisitorExecutor.getMemory();
+    }
+
+
+    /**
+     * 使用 visitor 模式运行 DSL 实现的 rule
+     * @param taskRuleVisitorExecutor
+     * @param rule
+     * @return
+     */
+    private TaskRuleVisitorExecutor runRuleDSLVisitor(TaskRuleVisitorExecutor taskRuleVisitorExecutor, String rule){
+        ANTLRInputStream input = new ANTLRInputStream(rule);
+        CalculatorExprLexer lexer = new CalculatorExprLexer(input);
+        CommonTokenStream tokens = new CommonTokenStream(lexer);
+        CalculatorExprParser parser = new CalculatorExprParser(tokens);
+        ParseTree tree = parser.program();
+
+        taskRuleVisitorExecutor.visit(tree);//执行结果汇入 memory
+        return taskRuleVisitorExecutor;
     }
 }

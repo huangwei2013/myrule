@@ -3,6 +3,7 @@
 <mapper namespace="flow3.model.dao.TTaskInstMapper">
 	<resultMap id="BaseResultMap" type="flow3.model.entity.TTaskInst">
             <result column="id" property="id" />
+	        <result column="flowInstId" property="flowInstId" />
 	        <result column="flowId" property="flowId" />
 	        <result column="taskId" property="taskId" />
 	        <result column="ret" property="ret" />
@@ -13,6 +14,7 @@
     <!-- 表字段 -->
     <sql id="baseColumns">
          t.id
+        , t.flowInstId
         , t.flowId
         , t.taskId
         , t.ret
@@ -44,6 +46,7 @@
         </selectKey>
 	INSERT INTO t_task_inst
     <trim prefix="(" suffix=")" suffixOverrides=",">
+                                flowInstId,
         	        	    	flowId,
     	        	    	taskId,
     	        	    	ret,
@@ -51,6 +54,7 @@
     	        	    	updated_at,
     	        </trim>
     <trim prefix="VALUES (" suffix=")" suffixOverrides=",">            
+        	        	        #{flowInstId},
         	        	        #{flowId},
     	        	        #{taskId},
     	        	        #{ret},                   
@@ -67,9 +71,12 @@
             SELECT LAST_INSERT_ID() AS id
         </selectKey>
         INSERT INTO t_task_inst    
-        <trim prefix="(" suffix=")" suffixOverrides=",">	 
+        <trim prefix="(" suffix=")" suffixOverrides=",">
 
-                                                                            <if test="flowId != null">
+                                                               <if test="flowInstId != null">
+                   flowInstId,
+                    </if>
+                                                               <if test="flowId != null">
                    flowId,
                     </if>
                                                                 <if test="taskId != null">
@@ -85,7 +92,10 @@
                    updated_at,
                     </if>
                                     </trim>
-        <trim prefix="VALUES (" suffix=")" suffixOverrides=",">            
+        <trim prefix="VALUES (" suffix=")" suffixOverrides=",">
+            <if test="flowInstId != null" >
+                #{flowInstId},
+            </if>
                                                                             <if test="flowId != null" >
                     #{flowId},                    
                     </if>
@@ -108,8 +118,9 @@
     <update id="update" parameterType="flow3.model.entity.TTaskInst">
     UPDATE t_task_inst
      <set>		
-                                     flowId=#{flowId},        
-                                taskId=#{taskId},        
+                                     flowInstId=#{flowInstId},
+                                     flowId=#{flowId},
+                                taskId=#{taskId},
                                 ret=#{ret},        
                                 created_at=#{createdAt},        
                                 updated_at=#{updatedAt},        
@@ -122,6 +133,9 @@
     <update id="updateIgnoreNull" parameterType="flow3.model.entity.TTaskInst">
     UPDATE t_task_inst
     <set>
+        <if test="flowInstId != null" >
+            flowInstId=#{flowInstId},
+        </if>
     	                                                <if test="flowId != null" >
                 flowId=#{flowId},                 
                 </if>

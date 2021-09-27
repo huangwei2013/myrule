@@ -32,8 +32,9 @@ public class FlowInst {
     Map<Integer, FlowTask> taskSet;// backup tasks for this flow/flowInst, set when initial this FlowInst
     Queue<TaskInst> taskInsts; // set startTask from beginning; once empty, flow ended
     Map<String, Object> facts;
-    RuleVisitorExecutor ruleExecutor;
-    TopologyVisitorExecutor topologyExecutor;
+    TaskRuleVisitorExecutor taskRuleVisitorExecutor;
+    TopologyVisitorExecutor topologyVisitorExecutor;
+    NextTaskRuleVisitorExecutor nextTaskRuleVisitorExecutor;
 
     public FlowInst(Integer flowInstId, Flow flow, Map<Integer, FlowTask> taskSet, Map<String, Object> facts, TTaskInstService tTaskInstService, TTaskRuleService tTaskRuleService){
         this.flowInstId = flowInstId;
@@ -43,9 +44,10 @@ public class FlowInst {
         this.tTaskInstService = tTaskInstService;
         this.tTaskRuleService = tTaskRuleService;
 
-        this.topologyExecutor = new TopologyVisitorExecutor();
-        this.ruleExecutor = new RuleVisitorExecutor();
-        this.ruleExecutor.init(facts);
+        this.topologyVisitorExecutor = new TopologyVisitorExecutor();
+        this.nextTaskRuleVisitorExecutor = new NextTaskRuleVisitorExecutor();
+        this.taskRuleVisitorExecutor = new TaskRuleVisitorExecutor();
+        this.taskRuleVisitorExecutor.addFacts(facts);
         taskInsts =  new LinkedList<TaskInst>();
 
         for( FlowTask flowTask : taskSet.values()){
@@ -58,6 +60,7 @@ public class FlowInst {
 
     private void addTaskInst(FlowTask flowTask){
         TTaskInst tTaskInst = new TTaskInst();
+        tTaskInst.setFlowInstId(this.flowInstId);
         tTaskInst.setFlowId(flowTask.getFlowId());
         tTaskInst.setTaskId(flowTask.getTaskId());
         tTaskInst.setRet(0);
@@ -77,12 +80,17 @@ public class FlowInst {
         taskInsts.add(new TaskInst(tTaskInst.getId(), this, task));
     }
 
+    /**
+     * 运行一个 Flow 的实例
+     *
+     * @return
+     */
     public Integer run(){
             while(!taskInsts.isEmpty()){
                 TaskInst curTaskInst = taskInsts.poll();
 
                 // run task
-                facts = curTaskInst.run(ruleExecutor, facts);
+                facts = curTaskInst.run(taskRuleVisitorExecutor);
 
                 TTaskInst tTaskInst = tTaskInstService.getById(curTaskInst.taskInstId);
                 tTaskInst.setRet(1);
@@ -91,37 +99,43 @@ public class FlowInst {
                 // next task
                 getNextTask(curTaskInst);
             }
-            facts = ruleExecutor.getMemory();
             return 1;
     }
 
-    public void getNextTask(TaskInst taskInst){
+    /**
+     * 除了节点执行，主要的控制逻辑就在这里
+     *
+     * @param curTaskInst
+     */
+    public void getNextTask(TaskInst curTaskInst){
         // FlowInst get next task by Flow-Task relations
         try {
-            if (taskSet.containsKey(taskInst.taskId)) {
-                FlowTask flowTask = taskSet.get(taskInst.taskId);
-                Map<Rule, Integer> nextTaskByRule = flowTask.getNextTaskByRule();
-                for (Rule rule : nextTaskByRule.keySet()) {
-                    System.out.printf("【nextTaskByRule】 Rule : %s, for task : %d, with Facts : %s\n", ((Rule) rule).getContent(), taskInst.taskId, facts.toString());
+            if (taskSet.containsKey(curTaskInst.taskId)) {
+                FlowTask flowTask = taskSet.get(curTaskInst.taskId);
+                Map<Rule, Integer> nextTasksByRule = flowTask.getNextTasksByRule();
+                for (Rule rule : nextTasksByRule.keySet()) {
+                    System.out.printf("【nextTasksByRule】 Rule : %s, for task : %d, with Facts : %s\n", ((Rule) rule).getContent(), curTaskInst.taskId, taskRuleVisitorExecutor.getMemory().toString());
 
-                    ANTLRInputStream input = new ANTLRInputStream(rule.getContent());
-                    CalculatorExprLexer lexer = new CalculatorExprLexer(input);
-                    CommonTokenStream tokens = new CommonTokenStream(lexer);
-                    CalculatorExprParser parser = new CalculatorExprParser(tokens);
-                    ParseTree tree = parser.program();
-                    ruleExecutor.visit(tree);
+                    Integer nextToCheckTaskId = nextTasksByRule.get(rule).intValue();
+                    nextTaskRuleVisitorExecutor.reInitFacts(facts);
+                    Boolean retRunNextTask = runNextTaskRuleDSLVisitor(nextTaskRuleVisitorExecutor, rule.getContent());
+                    if(!retRunNextTask) continue;
 
                     for (FlowTask ft : taskSet.values()) {
-                        if (ft.getTaskId().equals(nextTaskByRule.get(rule).intValue())) {
+                        if (ft.getTaskId().equals(nextToCheckTaskId)) {
 
-                            // NOTE：反向检查节点条件是否满足，满足则执行 addTaskInst
+                            // NOTE：若设置了pre条件，将反向检查节点条件是否满足，满足则执行 addTaskInst
                             if(ft.getPreCondition() != null && !ft.getPreCondition().isEmpty()) {
                                 Boolean checkTaskRet = checkTask(ft.getPreCondition());
                                 if( checkTaskRet == true ) {
-                                    System.out.println("more task will added");
+                                    System.out.printf("more task will added on PreCondition [taskId = %d] \n", ft.getTaskId());
                                     addTaskInst(ft);
-                                    break;
+                                } else{
+                                    System.out.println("no task added");
                                 }
+                            } else { // 否则直接开启后续节点
+                                System.out.printf("more task will added without PreCondition [taskId = %d] \n", ft.getTaskId());
+                                addTaskInst(ft);
                             }
                         }
                     }
@@ -132,6 +146,23 @@ public class FlowInst {
         }
     }
 
+    /**
+     * 使用 visitor 模式运行 DSL 实现的 rule
+     * @param rule
+     */
+    private Boolean runNextTaskRuleDSLVisitor(NextTaskRuleVisitorExecutor dslExecutor, String rule){
+        ANTLRInputStream input = new ANTLRInputStream(rule);
+        CalculatorExprLexer lexer = new CalculatorExprLexer(input);
+        CommonTokenStream tokens = new CommonTokenStream(lexer);
+        CalculatorExprParser parser = new CalculatorExprParser(tokens);
+        ParseTree tree = parser.program();
+
+        Float ret = dslExecutor.visit(tree);
+        System.out.printf("【runNextTaskRuleDSLVisitor】 rule : %s, facts : %s\n", rule, dslExecutor.getMemory().toString());
+
+        return ret>0?true:false;
+    }
+
     private Boolean checkTask(String preCondition){
         Boolean ret = false;
         try {
@@ -140,7 +171,10 @@ public class FlowInst {
             CommonTokenStream tokens = new CommonTokenStream(lexer);
             TopologyExprParser parser = new TopologyExprParser(tokens);
             ParseTree tree = parser.program();
-            ret = topologyExecutor.visit(tree) == "t" ? true : false;
+            ret = topologyVisitorExecutor.visit(tree) == "t" ? true : false;
+
+            System.out.printf("【checkTask】 rule : %s, facts : %s, ret : %b\n", preCondition, topologyVisitorExecutor.getMemory().toString(), ret);
+
         }catch (Exception e){
             System.out.printf("checkTask :",e.getMessage());
         }

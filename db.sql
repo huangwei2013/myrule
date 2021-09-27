@@ -65,6 +65,7 @@ CREATE TABLE IF NOT EXISTS `t_flow_inst`(
 
 CREATE TABLE IF NOT EXISTS `t_task_inst`(
     `id` INT(10) NOT NULL AUTO_INCREMENT COMMENT '规则ID',
+    `flowInstId` INT(10) NOT NULL  COMMENT '流程实例ID',
     `flowId` INT(10) NOT NULL  COMMENT '流程ID',
     `taskId` INT(10) NOT NULL  COMMENT '任务ID',
     `ret` TINYINT(2) DEFAULT 0 COMMENT '执行结果：0-未执行完;1-成功; >1-错误(码)',

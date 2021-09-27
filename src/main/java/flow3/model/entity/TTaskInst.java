@@ -8,6 +8,8 @@ import java.util.Date;
 public class TTaskInst {
 	/** 规则ID */
 	private Integer id;
+	/** 流程实例ID */
+	private Integer flowInstId;
 	/** 流程ID */
 	private Integer flowId;
 	/** 任务ID */
@@ -25,6 +27,15 @@ public class TTaskInst {
 	
 	public Integer getId() {
 		return this.id;
+	}
+
+
+	public Integer getFlowInstId() {
+		return flowInstId;
+	}
+
+	public void setFlowInstId(Integer flowInstId) {
+		this.flowInstId = flowInstId;
 	}
 	
 	public void setFlowId(Integer flowId) {

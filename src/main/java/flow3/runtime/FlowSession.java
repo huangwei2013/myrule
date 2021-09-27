@@ -75,7 +75,7 @@ public  class FlowSession {
                     rule.setContent(ruleStr);
                     nextTaskByRulesMap.put(rule, (Integer) tempMap.get(ruleStr));
                 }
-                flowTask.setNextTaskByRule(nextTaskByRulesMap);
+                flowTask.setNextTasksByRule(nextTaskByRulesMap);
             }
 
             taskSet.put(tFlowTask.getTaskId(), flowTask);
