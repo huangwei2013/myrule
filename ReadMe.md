@@ -35,6 +35,15 @@ whatever这个名字，是 runtime 直接使用的对象
 
 ## runtime
 主要执行逻辑，包括 DSL 的非生成部分
+两种模式在 FlowSession 初始化时设定
+
+### runtime/visitor
+DSL 的 visitor 实现
+* 不支持嵌套计算式
+### runtime/listener
+DSL 的 listener 实现
+* 支持嵌套计算式(可参看test下的示例)
+* TODO：preCondition的处理（对应 TopologyVisitorExecutor)
 
 # 其他
 ## 测试数据

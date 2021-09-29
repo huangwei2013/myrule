@@ -9,6 +9,9 @@ import flow3.model.entity.TFlow;
 import flow3.model.entity.TFlowInst;
 import flow3.model.entity.TFlowTask;
 import flow3.model.service.*;
+import flow3.runtime.listener.FlowInst4Listener;
+import flow3.runtime.visitor.FlowInst4Visitor;
+import flow3.uitl.DSLMode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -48,7 +51,9 @@ public  class FlowSession {
     }
     // end of 普通类结合 @Autowired 的实现方式
 
-    public void run(){
+    public void run(Integer dslMode){
+
+        // 构造的数据
         Integer flowId = 1;
 
         Flow flow = new Flow();
@@ -66,8 +71,6 @@ public  class FlowSession {
 
             if (tFlowTask.getNext() != null && !tFlowTask.getNext().isEmpty()) {
                 String str = tFlowTask.getNext();
-                //Map<String, Integer> tempMap  = new Gson().fromJson("{'s==11.0;':1}", Map.class);// 不能有转义符
-                //Map<String, Integer> tempMap  = new Gson().fromJson(str, Map.class);// 不能有转义符
                 Map<String, Integer> tempMap  = new Gson().fromJson(str, new TypeToken<HashMap<String, Integer>>(){}.getType());// 不能有转义符
                 Map<Rule, Integer> nextTaskByRulesMap = new HashMap<>();
                 for(String ruleStr : tempMap.keySet()){ // NOTE：有点曲折，定义的数据结构该改
@@ -90,8 +93,14 @@ public  class FlowSession {
         tFlowInst.setRet(0);
         tFlowInst.setFacts(facts.toString());
         tFlowInstService.insert(tFlowInst);
+        // end of 构造数据
 
-        FlowInst flowInst = new FlowInst(tFlowInst.getId(), flow, taskSet, facts, tTaskInstService, tTaskRuleService);
+        FlowInst flowInst = null;
+        if (dslMode.equals(DSLMode.VisitorNode)) {
+            flowInst = FlowInst4Visitor.builder(tFlowInst.getId(), flow, taskSet, facts, tTaskInstService, tTaskRuleService);
+        } else {
+            flowInst = FlowInst4Listener.builder(tFlowInst.getId(), flow, taskSet, facts, tTaskInstService, tTaskRuleService);
+        }
 
         // Run
         Integer flowInstRet = flowInst.run();
@@ -99,7 +108,6 @@ public  class FlowSession {
         tFlowInst.setRet(flowInstRet);
         tFlowInst.setFacts(flowInst.getFacts().toString());
         tFlowInstService.updateIgnoreNull(tFlowInst);
-
     }
 
 }
