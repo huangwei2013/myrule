@@ -39,3 +39,24 @@ whatever这个名字，是 runtime 直接使用的对象
 # 其他
 ## 测试数据
 test_data.sql：测试用flow配置
+
+## 规则表达式支持嵌套的实现
+
+通过 Listener 方式实现 (TaskRuleListenerExecutor)
+
+
+# FAQ
+## 规则(计算式)格式
+
+* 逗号：以逗号结尾，只是 DSL 文法上更明确，并不影响实际生成 tree (会有个扎眼的红色警告)
+
+## DSL两种模式：visitor 和 listener
+
+* Visitor中，可以自行控制遍历的方法/顺序
+    * 传递信息
+        * 输入：通过 context 的方式传递，有自动生成的代码管理，可修改但不好把控
+        * 输出：可用return的方法向外返回
+    * 必须指定(返回值)类型，这个会带来一些处理不便
+* Listener中，无法控制遍历顺序
+    * 传递信息需要自己处理，一般类中会自定义数据体(如，TaskRuleListenerExecutor.memory )
+    * 外部获取值，要么通过约定key/变量来处理，要么通过类似 xxx.getValue(tree) 读取根节点的对应输出
