@@ -10,16 +10,25 @@ import java.util.Map;
 
 public class TaskRuleListenerExecutor extends CalculatorExprBaseListener {
 
-    Map<String, Object> memory = new HashMap<String, Object>();
+    private Map<String, Object> memory = new HashMap<String, Object>();
+    private Object ret = new Object();
 
-    public Object get(String key){
+    public Object get(Object key){
         if(memory.containsKey(key)){
-            memory.get(key);
+            return memory.get(key);
         }
         return null;
     }
+    public Boolean containsKey(Object key){
+        return memory.containsKey(key);
+    }
+
     public Map<String, Object> getMemory(){
         return this.memory;
+    }
+
+    public Object getRet(){
+        return this.ret;
     }
 
     public void addFacts(Map<String, Object> facts){
@@ -35,7 +44,6 @@ public class TaskRuleListenerExecutor extends CalculatorExprBaseListener {
         }
     }
 
-
     ParseTreeProperty<Object> values  = new ParseTreeProperty<>();
     public void setValue(ParseTree node, Object value){
         values.put(node, value);
@@ -48,6 +56,7 @@ public class TaskRuleListenerExecutor extends CalculatorExprBaseListener {
     public void exitProgram(CalculatorExprParser.ProgramContext ctx) {
         System.out.printf(" [%s.%s] %s \n", this.getClass().getName(), Thread.currentThread() .getStackTrace()[1].getMethodName(), ctx.getRuleContext().getText());
         setValue(ctx, memory.get(ctx.getPayload().getText()));
+        this.ret = memory.get(ctx.getPayload().getText());
     }
 
     @Override
@@ -56,10 +65,26 @@ public class TaskRuleListenerExecutor extends CalculatorExprBaseListener {
         if ( (ctx.EQ() != null) &&  (ctx.EQ().getSymbol().getType() == CalculatorExprParser.EQ )){
             // ==
             if( memory.containsKey(ctx.VAR().toString()) ) {
-                Float value = Float.valueOf(memory.get(ctx.VAR().toString()).toString());
-                if (value.equals(Float.valueOf(ctx.expr().getText())) ){
-                    memory.put(ctx.getPayload().getText(), 1);
-                    setValue(ctx, 1);
+                Float lValue = Float.valueOf(memory.get(ctx.VAR().toString()).toString());
+                try{
+                    if (lValue.equals(Float.valueOf(ctx.expr().getText())) ){
+                        memory.put(ctx.getPayload().getText(), true);
+                        setValue(ctx, true);
+                    }else{
+                        memory.put(ctx.getPayload().getText(), false);
+                        setValue(ctx, false);
+                    }
+                }catch(Exception e){
+                    if(memory.containsKey(ctx.expr().getText())){
+                        Float rValue = (Float) memory.get(ctx.expr().getText());
+                        if(lValue.equals(rValue)){
+                            memory.put(ctx.getPayload().getText(), true);
+                            setValue(ctx, true);
+                        }else{
+                            memory.put(ctx.getPayload().getText(), false);
+                            setValue(ctx, false);
+                        }
+                    }
                 }
             }
         }else {
@@ -78,7 +103,9 @@ public class TaskRuleListenerExecutor extends CalculatorExprBaseListener {
     @Override
     public void exitVar(CalculatorExprParser.VarContext ctx) {
         System.out.printf(" [%s.%s] %s \n", this.getClass().getName(), Thread.currentThread() .getStackTrace()[1].getMethodName(), ctx.getRuleContext().getText());
-        memory.put(ctx.VAR().getText(), Float.valueOf(ctx.getRuleContext().getText()));
+        if(!memory.containsKey(ctx.VAR().getText())) {
+            memory.put(ctx.VAR().getText(), Float.valueOf(ctx.getRuleContext().getText()));
+        }
     }
 
     @Override

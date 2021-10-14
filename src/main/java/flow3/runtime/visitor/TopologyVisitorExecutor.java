@@ -6,7 +6,7 @@ import flow3.dsl.gen.Topology.TopologyExprParser;
 import java.util.HashMap;
 import java.util.Map;
 
-public class TopologyVisitorExecutor extends TopologyExprBaseVisitor<String> {
+public class TopologyVisitorExecutor extends TopologyExprBaseVisitor<Object> {
     // 声明一个 map，存放变量与值的键值对
     Map<String, Boolean> memory = new HashMap<>();
 
@@ -55,7 +55,7 @@ public class TopologyVisitorExecutor extends TopologyExprBaseVisitor<String> {
      */
     @Override
     public String visitParens(TopologyExprParser.ParensContext ctx) {
-        return visit(ctx.expr());
+        return (String) visit(ctx.expr());
     }
 
 }

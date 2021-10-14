@@ -32,7 +32,19 @@ public class TTaskInstService {
     public TTaskInst getById(Integer id) {
     	return tTaskInstMapper.getById(id);
     }
-	
+
+
+    /**
+     * 根据主键查询
+     *
+     * @param flowInstId flowInst的ID
+     * @return 返回记录，没有返回null
+     */
+    public List<TTaskInst> getByFlowInstId(Integer flowInstId) {
+        return tTaskInstMapper.getByFlowInstId(flowInstId);
+    }
+
+
     /**
      * 新增，插入所有字段
      *

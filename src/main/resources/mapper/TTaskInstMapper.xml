@@ -37,6 +37,14 @@
 		WHERE id = #{id}
 	</select>
 
+    <!-- 查询所属flowInst记录 -->
+    <select id="getByFlowInstId" resultMap="BaseResultMap">
+        SELECT
+        <include refid="baseColumns" />
+        FROM t_task_inst t
+        WHERE flowInstId = #{flowInstId}
+    </select>
+
 	<!-- 插入全部字段 -->
     <insert id="insert" parameterType="flow3.model.entity.TTaskInst"
 		keyProperty="id" keyColumn="id" useGeneratedKeys="true"

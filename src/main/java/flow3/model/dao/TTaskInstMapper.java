@@ -23,6 +23,13 @@ public interface TTaskInstMapper {
      * @return 返回记录，没有返回null
      */
 	TTaskInst getById(Integer id);
+
+	/**
+	 * 查询所属flowInst记录
+	 *
+	 * @return 返回集合，没有返回空List
+	 */
+	List<TTaskInst> getByFlowInstId(Integer flowInstId);
 	
 	/**
      * 新增，插入所有字段

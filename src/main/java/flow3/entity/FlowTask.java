@@ -8,6 +8,7 @@ public class FlowTask {
     Integer flowId;
     Integer taskId;
     Integer taskType;
+    Integer nextTaskId;
     String preCondition;
 
     Map<Rule, Integer> nextTasksByRule; //  when this task done, find nexts by Rule => TaskId
@@ -17,6 +18,7 @@ public class FlowTask {
         this.taskId = taskId;
         this.taskType = taskType;
         this.preCondition = preCondition;
+        this.nextTaskId = 0;
 
         this.nextTasksByRule = new HashMap<Rule, Integer>(); // db operation
     }
@@ -44,6 +46,14 @@ public class FlowTask {
 
     public void setTaskType(Integer taskType) {
         this.taskType = taskType;
+    }
+
+    public Integer getNextTaskId() {
+        return nextTaskId;
+    }
+
+    public void setNextTaskId(Integer nextTaskId) {
+        this.nextTaskId = nextTaskId;
     }
 
     public String getPreCondition() {

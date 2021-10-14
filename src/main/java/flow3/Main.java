@@ -1,14 +1,14 @@
 package flow3;
 
 import flow3.runtime.FlowSession;
-import flow3.uitl.DSLMode;
+import flow3.util.DSLMode;
 import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.ApplicationContext;
 
 @SpringBootApplication
-@MapperScan({"flow3.model.dao","flow3.model.entity","flow3.model.mapper"})
+@MapperScan({"flow3.model"})
 public class Main {
 
 	public static void main(String[] args) {

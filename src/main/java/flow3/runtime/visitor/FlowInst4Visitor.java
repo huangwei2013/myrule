@@ -13,10 +13,7 @@ import flow3.model.entity.TTaskRule;
 import flow3.model.service.TTaskInstService;
 import flow3.model.service.TTaskRuleService;
 import flow3.runtime.FlowInst;
-import flow3.runtime.listener.FlowInst4Listener;
-import flow3.runtime.listener.TaskInst4Listener;
-import flow3.runtime.listener.TaskRuleListenerExecutor;
-import flow3.uitl.TaskType;
+import flow3.util.TaskType;
 import org.antlr.v4.runtime.ANTLRInputStream;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.tree.ParseTree;
@@ -47,6 +44,7 @@ public class FlowInst4Visitor implements FlowInst {
         inst.setFlowId(flow.getFlowId());
         inst.taskSet = taskSet;
         inst.facts = facts;
+
         inst.tTaskInstService = tTaskInstService;
         inst.tTaskRuleService = tTaskRuleService;
 
@@ -95,20 +93,20 @@ public class FlowInst4Visitor implements FlowInst {
      */
     @Override
     public Integer run(){
-            while(!taskInsts.isEmpty()){
-                TaskInst4Visitor curTaskInst = taskInsts.poll();
+        while(!taskInsts.isEmpty()){
+            TaskInst4Visitor curTaskInst = taskInsts.poll();
 
-                // run task
-                facts = curTaskInst.run(taskRuleExecutor);
+            // run task
+            facts = curTaskInst.run(taskRuleExecutor);
 
-                TTaskInst tTaskInst = tTaskInstService.getById(curTaskInst.taskInstId);
-                tTaskInst.setRet(1);
-                tTaskInstService.update(tTaskInst);
+            TTaskInst tTaskInst = tTaskInstService.getById(curTaskInst.taskInstId);
+            tTaskInst.setRet(1);
+            tTaskInstService.update(tTaskInst);
 
-                // next task
-                getNextTask(curTaskInst);
-            }
-            return 1;
+            // next task
+            getNextTask(curTaskInst);
+        }
+        return 1;
     }
 
     /**
@@ -159,8 +157,8 @@ public class FlowInst4Visitor implements FlowInst {
      * 使用 visitor 模式运行 DSL 实现的 rule
      * @param rule
      */
-    private Boolean runNextTaskRuleDSLVisitor(NextTaskRuleVisitorExecutor dslExecutor, String rule){
-        ANTLRInputStream input = new ANTLRInputStream(rule);
+    private Boolean runNextTaskRuleDSLVisitor(NextTaskRuleVisitorExecutor dslExecutor, Object rule){
+        ANTLRInputStream input = new ANTLRInputStream(rule.toString());
         CalculatorExprLexer lexer = new CalculatorExprLexer(input);
         CommonTokenStream tokens = new CommonTokenStream(lexer);
         CalculatorExprParser parser = new CalculatorExprParser(tokens);

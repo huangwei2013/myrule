@@ -59,8 +59,8 @@ public class TaskInst4Visitor {
      * @param rule
      * @return
      */
-    private TaskRuleVisitorExecutor runRuleDSLVisitor(TaskRuleVisitorExecutor taskRuleExecutor, String rule){
-        ANTLRInputStream input = new ANTLRInputStream(rule);
+    private TaskRuleVisitorExecutor runRuleDSLVisitor(TaskRuleVisitorExecutor taskRuleExecutor, Object rule){
+        ANTLRInputStream input = new ANTLRInputStream(rule.toString());
         CalculatorExprLexer lexer = new CalculatorExprLexer(input);
         CommonTokenStream tokens = new CommonTokenStream(lexer);
         CalculatorExprParser parser = new CalculatorExprParser(tokens);

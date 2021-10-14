@@ -32,7 +32,7 @@ CREATE TABLE IF NOT EXISTS `t_flow_task`(
     `flowId` INT(10) NOT NULL  COMMENT '流程ID',
     `taskId` INT(10) NOT NULL  COMMENT '任务ID',
     `type` INT(10) NOT NULL  COMMENT '任务类型，{startTask, commonTask}',
-    `next` TEXT COMMENT '下一个task的跳转规则',
+    `next` TEXT COMMENT '下一个task的跳转规则，为NULL：没有后续节点；为纯数字:无条件转移到该节点；为JSON：跳转到下一节点的条件(不满足条件时，则无后续任务)',
     `pre`  TEXT COMMENT '本task开启的前提，为前置节点执行+结果之间逻辑表达式',
     `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     `updated_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '最后更新时间',    

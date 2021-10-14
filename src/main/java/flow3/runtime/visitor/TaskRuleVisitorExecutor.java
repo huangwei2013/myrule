@@ -7,7 +7,7 @@ import flow3.dsl.gen.Calculator.CalculatorExprParser;
 import java.util.HashMap;
 import java.util.Map;
 
-public class TaskRuleVisitorExecutor extends CalculatorExprBaseVisitor<Float> {
+public class TaskRuleVisitorExecutor extends CalculatorExprBaseVisitor<Object> {
     // 声明一个 map，存放变量与值的键值对
     Map<String, Object> memory = new HashMap<String, Object>();
 
@@ -31,7 +31,7 @@ public class TaskRuleVisitorExecutor extends CalculatorExprBaseVisitor<Float> {
     @Override
     public Float visitDefine(CalculatorExprParser.DefineContext ctx) {
         String var = ctx.VAR().getText();
-        float value = visit(ctx.expr());
+        float value = (float) visit(ctx.expr());
         memory.put(var, value);
         return value;
     }
@@ -41,8 +41,8 @@ public class TaskRuleVisitorExecutor extends CalculatorExprBaseVisitor<Float> {
      */
     @Override
     public Float visitMulDiv(CalculatorExprParser.MulDivContext ctx) {
-        float left = visit(ctx.expr(0));
-        float right = visit(ctx.expr(1));
+        float left = (float) visit(ctx.expr(0));
+        float right = (float) visit(ctx.expr(1));
         if (ctx.op.getType() == CalculatorExprParser.MUL)
             return left * right;
         return left / right;
@@ -53,8 +53,8 @@ public class TaskRuleVisitorExecutor extends CalculatorExprBaseVisitor<Float> {
      */
     @Override
     public Float visitAddSub(CalculatorExprParser.AddSubContext ctx) {
-        float left = visit(ctx.expr(0));
-        float right = visit(ctx.expr(1));
+        float left = (float) visit(ctx.expr(0));
+        float right = (float) visit(ctx.expr(1));
         if (ctx.op.getType() == CalculatorExprParser.ADD)
             return left + right;
         return left - right;
@@ -65,8 +65,8 @@ public class TaskRuleVisitorExecutor extends CalculatorExprBaseVisitor<Float> {
      * @return
      */
     public Float visitCompare(CalculatorExprParser.CompareContext ctx) {
-        float left = visit(ctx.expr(0));
-        float right = visit(ctx.expr(1));
+        float left = (float) visit(ctx.expr(0));
+        float right = (float) visit(ctx.expr(1));
         if (ctx.op.getType() == CalculatorExprParser.EQ)
             return (left == right)?(float)1 : (float)0;
         else if (ctx.op.getType() == CalculatorExprParser.NEQ)
@@ -106,7 +106,7 @@ public class TaskRuleVisitorExecutor extends CalculatorExprBaseVisitor<Float> {
      */
     @Override
     public Float visitParens(CalculatorExprParser.ParensContext ctx) {
-        return visit(ctx.expr());
+        return (Float) visit(ctx.expr());
     }
 
     /**
@@ -119,7 +119,7 @@ public class TaskRuleVisitorExecutor extends CalculatorExprBaseVisitor<Float> {
             System.out.println(memory.get(var));
         else
             System.err.println("undefined identifier");
-        return visitChildren(ctx);
+        return (Float) visitChildren(ctx);
     }
 
     /**
@@ -128,6 +128,6 @@ public class TaskRuleVisitorExecutor extends CalculatorExprBaseVisitor<Float> {
     @Override
     public Float visitPrintExpr(CalculatorExprParser.PrintExprContext ctx) {
         System.out.println(visit(ctx.expr()));
-        return visitChildren(ctx);
+        return (Float) visitChildren(ctx);
     }
 }
