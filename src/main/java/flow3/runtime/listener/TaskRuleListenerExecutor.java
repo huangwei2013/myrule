@@ -1,14 +1,14 @@
 package flow3.runtime.listener;
 
-import flow3.dsl.gen.Calculator.CalculatorExprBaseListener;
-import flow3.dsl.gen.Calculator.CalculatorExprParser;
+import flow3.dsl.gen.Rule.RuleExprBaseListener;
+import flow3.dsl.gen.Rule.RuleExprParser;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.ParseTreeProperty;
 
 import java.util.HashMap;
 import java.util.Map;
 
-public class TaskRuleListenerExecutor extends CalculatorExprBaseListener {
+public class TaskRuleListenerExecutor extends RuleExprBaseListener {
 
     private Map<String, Object> memory = new HashMap<String, Object>();
     private Object ret = new Object();
@@ -53,55 +53,56 @@ public class TaskRuleListenerExecutor extends CalculatorExprBaseListener {
     }
 
     @Override
-    public void exitProgram(CalculatorExprParser.ProgramContext ctx) {
+    public void exitProgram(RuleExprParser.ProgramContext ctx) {
         System.out.printf(" [%s.%s] %s \n", this.getClass().getName(), Thread.currentThread() .getStackTrace()[1].getMethodName(), ctx.getRuleContext().getText());
         setValue(ctx, memory.get(ctx.getPayload().getText()));
         this.ret = memory.get(ctx.getPayload().getText());
     }
 
     @Override
-    public void exitDefine(CalculatorExprParser.DefineContext ctx) {
+    public void exitDefine(RuleExprParser.DefineContext ctx) {
         System.out.printf(" [%s.%s] %s \n", this.getClass().getName(), Thread.currentThread() .getStackTrace()[1].getMethodName(), ctx.getRuleContext().getText());
-        if ( (ctx.EQ() != null) &&  (ctx.EQ().getSymbol().getType() == CalculatorExprParser.EQ )){
-            // ==
-            if( memory.containsKey(ctx.VAR().toString()) ) {
-                Float lValue = Float.valueOf(memory.get(ctx.VAR().toString()).toString());
-                try{
-                    if (lValue.equals(Float.valueOf(ctx.expr().getText())) ){
-                        memory.put(ctx.getPayload().getText(), true);
+
+        String lhsName = ctx.VAR().toString();
+        String lhsValueStr = ctx.expr().getText();
+        String expr = ctx.getPayload().getText();
+
+        if ( (ctx.EQ() != null) &&  (ctx.EQ().getSymbol().getType() == RuleExprParser.EQ )) { // ==
+
+            //set default value
+            memory.put(expr, false);
+            setValue(ctx, false);
+
+            Float rhsValue = memory.containsKey(lhsName) ? Float.valueOf(memory.get(lhsName).toString()) : null;
+            if (memory.containsKey(lhsName)) {
+                try {
+                    if (Float.valueOf(lhsValueStr).equals(rhsValue)) {// var = number;
+                        memory.put(expr, true);
                         setValue(ctx, true);
-                    }else{
-                        memory.put(ctx.getPayload().getText(), false);
-                        setValue(ctx, false);
                     }
-                }catch(Exception e){
-                    if(memory.containsKey(ctx.expr().getText())){
-                        Float rValue = (Float) memory.get(ctx.expr().getText());
-                        if(lValue.equals(rValue)){
-                            memory.put(ctx.getPayload().getText(), true);
+                } catch (Exception e) {
+                    if (memory.containsKey(lhsValueStr)) {// number = number;
+                        rhsValue = (Float) memory.get(lhsValueStr);
+                        if (Float.valueOf(lhsValueStr).equals(rhsValue)) {
+                            memory.put(expr, true);
                             setValue(ctx, true);
-                        }else{
-                            memory.put(ctx.getPayload().getText(), false);
-                            setValue(ctx, false);
                         }
                     }
                 }
             }
-        }else {
-            memory.put(ctx.VAR().toString(), memory.get(ctx.expr().getText()));
-            memory.put(ctx.getPayload().getText(), memory.get(ctx.expr().getText()));
-            setValue(ctx, memory.get(ctx.expr().getText()));
+        } else { // =
+            memory.put(lhsName, Float.valueOf(lhsValueStr));
         }
     }
 
     @Override
-    public void exitNumber(CalculatorExprParser.NumberContext ctx) {
+    public void exitNumber(RuleExprParser.NumberContext ctx) {
         System.out.printf(" [%s.%s] %s \n", this.getClass().getName(), Thread.currentThread() .getStackTrace()[1].getMethodName(), ctx.getRuleContext().getText());
         memory.put(ctx.getRuleContext().getText(), Float.valueOf(ctx.getRuleContext().getText()));
     }
 
     @Override
-    public void exitVar(CalculatorExprParser.VarContext ctx) {
+    public void exitVar(RuleExprParser.VarContext ctx) {
         System.out.printf(" [%s.%s] %s \n", this.getClass().getName(), Thread.currentThread() .getStackTrace()[1].getMethodName(), ctx.getRuleContext().getText());
         if(!memory.containsKey(ctx.VAR().getText())) {
             memory.put(ctx.VAR().getText(), Float.valueOf(ctx.getRuleContext().getText()));
@@ -109,7 +110,7 @@ public class TaskRuleListenerExecutor extends CalculatorExprBaseListener {
     }
 
     @Override
-    public void exitParens(CalculatorExprParser.ParensContext ctx) {
+    public void exitParens(RuleExprParser.ParensContext ctx) {
         System.out.printf(" [%s.%s] %s \n", this.getClass().getName(), Thread.currentThread() .getStackTrace()[1].getMethodName(), ctx.getRuleContext().getText());
 
         String valueName = ctx.getRuleContext().getText().substring(1, ctx.getRuleContext().getText().length()-1);
@@ -117,12 +118,12 @@ public class TaskRuleListenerExecutor extends CalculatorExprBaseListener {
     }
 
     @Override
-    public void exitMulDiv(CalculatorExprParser.MulDivContext ctx) {
+    public void exitMulDiv(RuleExprParser.MulDivContext ctx) {
         System.out.printf(" [%s.%s] %s \n", this.getClass().getName(), Thread.currentThread() .getStackTrace()[1].getMethodName(), ctx.getRuleContext().getText());
         float left = Float.valueOf( memory.get(ctx.expr(0).getPayload().getText()).toString());
         float right = Float.valueOf( memory.get(ctx.expr(1).getPayload().getText()).toString());
         float ret = new Float(0);
-        if (ctx.op.getType() == CalculatorExprParser.MUL){
+        if (ctx.op.getType() == RuleExprParser.MUL){
             ret = left * right;
         }else{
             ret = left / right;
@@ -131,12 +132,12 @@ public class TaskRuleListenerExecutor extends CalculatorExprBaseListener {
     }
 
     @Override
-    public void exitAddSub(CalculatorExprParser.AddSubContext ctx) {
+    public void exitAddSub(RuleExprParser.AddSubContext ctx) {
         System.out.printf(" [%s.%s] %s \n", this.getClass().getName(), Thread.currentThread() .getStackTrace()[1].getMethodName(), ctx.getRuleContext().getText());
         float left = Float.valueOf( memory.get(ctx.expr(0).getPayload().getText()).toString());
         float right = Float.valueOf( memory.get(ctx.expr(1).getPayload().getText()).toString());
         float ret = new Float(0);
-        if (ctx.op.getType() == CalculatorExprParser.ADD){
+        if (ctx.op.getType() == RuleExprParser.ADD){
             ret = left + right;
         }else{
             ret = left - right;
@@ -145,23 +146,23 @@ public class TaskRuleListenerExecutor extends CalculatorExprBaseListener {
     }
 
     @Override
-    public void exitCompare(CalculatorExprParser.CompareContext ctx) {
+    public void exitCompare(RuleExprParser.CompareContext ctx) {
        System.out.printf(" [%s.%s] %s \n", this.getClass().getName(), Thread.currentThread() .getStackTrace()[1].getMethodName(), ctx.getRuleContext().getText());
         float left = Float.valueOf( memory.get(ctx.expr(0).getPayload().getText()).toString());
         float right = Float.valueOf( memory.get(ctx.expr(1).getPayload().getText()).toString());
         Boolean ret = false;
 
-        if (ctx.op.getType() == CalculatorExprParser.EQ)
+        if (ctx.op.getType() == RuleExprParser.EQ)
             ret = (left == right);
-        else if (ctx.op.getType() == CalculatorExprParser.NEQ)
+        else if (ctx.op.getType() == RuleExprParser.NEQ)
             ret = (left != right);
-        else if (ctx.op.getType() == CalculatorExprParser.GT)
+        else if (ctx.op.getType() == RuleExprParser.GT)
             ret = (left > right);
-        else if (ctx.op.getType() == CalculatorExprParser.GTE)
+        else if (ctx.op.getType() == RuleExprParser.GTE)
             ret = (left >= right);
-        else if (ctx.op.getType() == CalculatorExprParser.LT)
+        else if (ctx.op.getType() == RuleExprParser.LT)
             ret = (left < right);
-        else if (ctx.op.getType() == CalculatorExprParser.LTE)
+        else if (ctx.op.getType() == RuleExprParser.LTE)
             ret = (left <= right);
 
         memory.put(ctx.getRuleContext().getText(), ret);

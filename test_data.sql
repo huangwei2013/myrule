@@ -33,16 +33,16 @@ INSERT INTO `t_task_rule` VALUES (3,4,'f = 2 * 2;',1,NOW(), NOW());
 INSERT INTO `t_flow` VALUES (2,'flow2_demo','测试流程2','测试流程2',1,1,NOW(), NOW());
 
 INSERT INTO `t_task` VALUES (101,'节点1','节点1','节点1',1,1, NOW(), NOW());
-INSERT INTO `t_task` VALUES (102,'节点1','节点1','节点1',1,1, NOW(), NOW());
-INSERT INTO `t_task` VALUES (103,'节点1','节点1','节点1',1,1, NOW(), NOW());
-INSERT INTO `t_task` VALUES (104,'节点1','节点1','节点1',1,1, NOW(), NOW());
-INSERT INTO `t_task` VALUES (105,'节点1','节点1','节点1',1,1, NOW(), NOW());
-INSERT INTO `t_task` VALUES (106,'节点1','节点1','节点1',1,1, NOW(), NOW());
-INSERT INTO `t_task` VALUES (107,'节点1','节点1','节点1',1,1, NOW(), NOW());
-INSERT INTO `t_task` VALUES (108,'节点1','节点1','节点1',1,1, NOW(), NOW());
-INSERT INTO `t_task` VALUES (109,'节点1','节点1','节点1',1,1, NOW(), NOW());
-INSERT INTO `t_task` VALUES (110,'节点1','节点1','节点1',1,1, NOW(), NOW());
-INSERT INTO `t_task` VALUES (111,'节点1','节点1','节点1',1,1, NOW(), NOW());
+INSERT INTO `t_task` VALUES (102,'节点2','节点2','节点2',1,1, NOW(), NOW());
+INSERT INTO `t_task` VALUES (103,'节点3','节点3','节点3',1,1, NOW(), NOW());
+INSERT INTO `t_task` VALUES (104,'节点4','节点4','节点4',1,1, NOW(), NOW());
+INSERT INTO `t_task` VALUES (105,'节点5','节点5','节点5',1,1, NOW(), NOW());
+INSERT INTO `t_task` VALUES (106,'节点6','节点6','节点6',1,1, NOW(), NOW());
+INSERT INTO `t_task` VALUES (107,'节点7','节点7','节点7',1,1, NOW(), NOW());
+INSERT INTO `t_task` VALUES (108,'节点8','节点8','节点8',1,1, NOW(), NOW());
+INSERT INTO `t_task` VALUES (109,'节点9','节点9','节点9',1,1, NOW(), NOW());
+INSERT INTO `t_task` VALUES (110,'节点10','节点10','节点10',1,1, NOW(), NOW());
+INSERT INTO `t_task` VALUES (111,'节点11','节点11','节点11',1,1, NOW(), NOW());
 
 INSERT INTO `t_flow_task` VALUES (2,101,1,102,NULL, NOW(), NOW());
 INSERT INTO `t_flow_task` VALUES (2,102,0,'{\'cond1==1.0;\':103;\'cond1==2.0;\':104}',NULL, NOW(), NOW());
@@ -58,6 +58,9 @@ INSERT INTO `t_flow_task` VALUES (2,111,0,NULL,NULL, NOW(), NOW());
 
 INSERT INTO `t_task_rule` VALUES (101,101,'number = 12; ',1,  NOW(), NOW());
 INSERT INTO `t_task_rule` VALUES (102,101,'cond1 = 1; ',1,  NOW(), NOW());
+INSERT INTO `t_task_rule` VALUES (1003,105,'findStr = "it is a good day"; ',1,  NOW(), NOW());
+INSERT INTO `t_task_rule` VALUES (1004,107,'numberOfStudent = 50; ',1,  NOW(), NOW());
+INSERT INTO `t_task_rule` VALUES (1005,111,'isDone = 1; ',1,  NOW(), NOW());
 
 
 

@@ -1,4 +1,10 @@
 # 概述
+
+朴素条件模式的规则引擎
+
+(个人看法，易用的规则引擎，相比低代码更符合需要)
+
+## 支持形式
 简单规则引擎，支持任务流形式规则处理
 
 ```mermaid
@@ -22,7 +28,7 @@ graph TD
 5((节点5)) -->| | 11((节点11))
 7((节点7)) -->| cond4=2| 11((节点11))
 ```
-
+![ ](https://github.com/huangwei2013/myrule/doc/img/示例流程.png)
 
 ## 适用
 1、Flow形式流程定义和执行
@@ -36,22 +42,27 @@ graph TD
 包括以下三层，以及其对应关系
 
 1、flow
+    业务单位，包含1-N个task
 
 2、task
+    执行单元，包含1-N个rule
 
 3、rule
+    规则，key-value 形式
 
 # 模块说明
 ## DSL
 基于 Antlr4，对应两个文法定义文件在 flow/dsl/conf 下：
-* Calculator：用于正向执行，包括：
+* Rule：用于正向执行，包括：
     * 【本节点要执行的操作】，对应内容来自 t_task_rule.content 字段
     * 【下一个可能满足开启条件的节点】，对应内容来自 t_flow_task.next 字段
+    * 【结果需汇入参数池】
 * Topology：用于反向判断
     * 【某节点是否满足开启条件】，对应内容来自 t_flow_task.pre 字段
+    * 【结果不回写参数池】
 
 ## model
-DB操作相关，包括部分在 resources/mapper/ 下
+DB操作相关，包括 resources/mapper/ 
 
 ## entity
 whatever这个名字，是 runtime 直接使用的对象
@@ -83,7 +94,7 @@ test_data.sql：测试用flow配置
 
 ## 规则(计算式)格式
 
-* 逗号：以逗号结尾，只是 DSL 文法上更明确，并不影响实际生成 tree (会有个扎眼的红色警告)
+* 逗号：以逗号结尾，只是 DSL 文法上更明确，并不影响实际生成解析 tree (会有个扎眼的红色警告)
 
 ## DSL两种模式：visitor 和 listener
 

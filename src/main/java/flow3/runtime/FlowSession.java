@@ -11,7 +11,6 @@ import flow3.model.entity.TFlowTask;
 import flow3.model.entity.TTaskInst;
 import flow3.model.service.*;
 import flow3.runtime.listener.FlowInst4Listener;
-import flow3.runtime.visitor.FlowInst4Visitor;
 import flow3.util.DSLMode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -56,8 +55,19 @@ public  class FlowSession {
 
     public void run(Integer dslMode){
 
-        // 构造的数据
+        // 构造的数据，实际程序中这段应该改成API/lib调用
         Integer flowId = 2;
+
+        Map<String, Object> facts = new HashMap<String, Object>();
+        facts.put("count", (float)10.0);
+        facts.put("name", (float)1.0);
+        // end of 构造数据
+
+        runByInput(flowId, facts);
+
+    }
+
+    private void runByInput(Integer flowId, Map<String, Object> facts){
 
         Flow flow = new Flow();
         TFlow tflow = tFlowService.getById(flowId);
@@ -65,6 +75,30 @@ public  class FlowSession {
         flow.setAlias(tflow.getAlias());
         flow.setNote(tflow.getNote());
         flow.setVersion(tflow.getVersion());
+
+        Map<Integer, FlowTask> taskSet = buildTaskSet(flowId);
+
+        TFlowInst tFlowInst = new TFlowInst();
+        tFlowInst.setFlowId(flow.getFlowId());
+        tFlowInst.setRet(0);
+        tFlowInst.setFacts(facts.toString());
+        tFlowInstService.insert(tFlowInst);
+
+        List<TTaskInst> taskInsts = tTaskInstService.getByFlowInstId(tFlowInst.getId());
+
+        FlowInst flowInst = null;
+        flowInst = FlowInst4Listener.builder(tFlowInst.getId(), flow, taskSet, facts, taskInsts, tTaskInstService, tTaskRuleService);
+
+        // Run this instance
+        Integer flowInstRet = flowInst.run();
+
+        tFlowInst.setRet(flowInstRet);
+        tFlowInst.setFacts(flowInst.getFacts().toString());
+        tFlowInstService.updateIgnoreNull(tFlowInst);
+    }
+
+
+    private Map<Integer, FlowTask> buildTaskSet(Integer flowId){
 
         Map<Integer, FlowTask> taskSet = new HashMap<Integer, FlowTask>();
         Map<Integer, Integer> taskInstMap = new HashMap<>();
@@ -98,33 +132,6 @@ public  class FlowSession {
 
             taskSet.put(tFlowTask.getTaskId(), flowTask);
         }
-
-        Map<String, Object> facts = new HashMap<String, Object>();
-        facts.put("count", (float)10.0);
-        facts.put("name", (float)1.0);
-
-        TFlowInst tFlowInst = new TFlowInst();
-        tFlowInst.setFlowId(flow.getFlowId());
-        tFlowInst.setRet(0);
-        tFlowInst.setFacts(facts.toString());
-        tFlowInstService.insert(tFlowInst);
-
-        List<TTaskInst> taskInsts = tTaskInstService.getByFlowInstId(tFlowInst.getId());
-        // end of 构造数据
-
-        FlowInst flowInst = null;
-        if (dslMode.equals(DSLMode.VisitorNode)) {
-            flowInst = FlowInst4Visitor.builder(tFlowInst.getId(), flow, taskSet, facts, tTaskInstService, tTaskRuleService);
-        } else {
-            flowInst = FlowInst4Listener.builder(tFlowInst.getId(), flow, taskSet, facts, taskInsts, tTaskInstService, tTaskRuleService);
-        }
-
-        // Run
-        Integer flowInstRet = flowInst.run();
-
-        tFlowInst.setRet(flowInstRet);
-        tFlowInst.setFacts(flowInst.getFacts().toString());
-        tFlowInstService.updateIgnoreNull(tFlowInst);
+        return taskSet;
     }
-
 }

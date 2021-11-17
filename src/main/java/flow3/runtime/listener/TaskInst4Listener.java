@@ -1,14 +1,17 @@
 package flow3.runtime.listener;
 
-import flow3.dsl.gen.Calculator.CalculatorExprLexer;
-import flow3.dsl.gen.Calculator.CalculatorExprParser;
+import flow3.dsl.gen.Rule.RuleExprLexer;
+import flow3.dsl.gen.Rule.RuleExprParser;
 import flow3.entity.Action;
 import flow3.entity.Node;
 import flow3.entity.Rule;
 import flow3.entity.Task;
 import org.antlr.v4.runtime.ANTLRInputStream;
+import org.antlr.v4.runtime.CharStream;
+import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.tree.ParseTree;
+import org.antlr.v4.runtime.tree.ParseTreeListener;
 import org.antlr.v4.runtime.tree.ParseTreeWalker;
 
 import java.util.LinkedList;
@@ -55,20 +58,20 @@ public class TaskInst4Listener {
 
 
     /**
-     * 使用 visitor 模式运行 DSL 实现的 rule
+     * 使用 Listener 模式运行 DSL 实现的 rule
      * @param taskRuleExecutor
      * @param rule
      * @return
      */
     private TaskRuleListenerExecutor runRuleDSL(TaskRuleListenerExecutor taskRuleExecutor, String rule){
-        ANTLRInputStream input = new ANTLRInputStream(rule);
-        CalculatorExprLexer lexer = new CalculatorExprLexer(input);
+        CharStream input = CharStreams.fromString(rule);
+        RuleExprLexer lexer = new RuleExprLexer(input);
         CommonTokenStream tokens = new CommonTokenStream(lexer);
-        CalculatorExprParser parser = new CalculatorExprParser(tokens);
+        RuleExprParser parser = new RuleExprParser(tokens);
         ParseTree tree = parser.program();
 
         ParseTreeWalker walker = new ParseTreeWalker();
-        walker.walk(taskRuleExecutor, tree);
+        walker.walk((ParseTreeListener) taskRuleExecutor, tree);
         return taskRuleExecutor;
     }
 }
