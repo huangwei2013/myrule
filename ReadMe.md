@@ -28,7 +28,7 @@ graph TD
 5((节点5)) -->| | 11((节点11))
 7((节点7)) -->| cond4=2| 11((节点11))
 ```
-![ ](https://github.com/huangwei2013/myrule/doc/img/示例流程.png)
+![示例流程](./doc/img/示例流程.png)
 
 ## 适用
 1、Flow形式流程定义和执行
